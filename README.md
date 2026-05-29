@@ -13,16 +13,23 @@ A tiny **from-scratch coding agent harness** — Claude Code style, but running 
 - 💸 Runs on the **$10/month OpenCode Go plan** (endpoint `zen/go/v1`, `cost: 0`).
 
 ## Install
+
+One line (clones to `~/.taw-harness`, installs the global `taw` command, seeds `~/.taw/.env`):
 ```bash
-git clone https://github.com/tawgroup/taw-harness
-cd taw-harness
-cp .env.example .env          # then fill in OPENCODE_API_KEY (Go plan key)
-node bin/taw.mjs              # open the TUI
-# or install globally:
-npm link                      # then run `taw` anywhere
+curl -fsSL https://raw.githubusercontent.com/tawgroup/taw-harness/main/install.sh | bash
 ```
 
-Requires: Node ≥ 20 (or Bun). Get a Go plan API key at https://opencode.ai → workspace → **API Keys**.
+Or manually:
+```bash
+git clone https://github.com/tawgroup/taw-harness && cd taw-harness
+npm install -g .              # global `taw` command (package exposes the bin)
+cp .env.example .env          # then fill in OPENCODE_API_KEY (Go plan key)
+taw                           # open the TUI
+```
+
+Then put your key in `~/.taw/.env` (`OPENCODE_API_KEY=sk-...`). Requires: Node ≥ 20 (or Bun). Get a Go plan key at https://opencode.ai → workspace → **API Keys**.
+
+The interactive TUI **streams** replies token-by-token and renders Markdown; it shows the active skill and per-step timing. Headless `run`/`build` output stays plain (pipe-safe).
 
 ## Use
 ```bash
