@@ -43,6 +43,8 @@ export const DEFAULT_MODEL = process.env.TAW_MODEL || "glm-5";
 
 export const MAX_STEPS = Number(process.env.TAW_MAX_STEPS || 40);
 export const MAX_TOKENS = Number(process.env.TAW_MAX_TOKENS || 8192);
+// hard timeout per model request — cheap Go models can stall on big generations
+export const REQUEST_TIMEOUT_MS = Number(process.env.TAW_REQUEST_TIMEOUT || 180000);
 // cap of bytes returned to the model from a single tool result
 export const TOOL_OUTPUT_CAP = Number(process.env.TAW_TOOL_CAP || 30000);
 

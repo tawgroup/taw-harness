@@ -1,5 +1,5 @@
 // OpenCode Go client — OpenAI-compatible /chat/completions.
-import { BASE_URL, API_KEY, MAX_TOKENS } from "./config.mjs";
+import { BASE_URL, API_KEY, MAX_TOKENS, REQUEST_TIMEOUT_MS } from "./config.mjs";
 
 const SLEEP = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -21,6 +21,11 @@ export async function chat({ messages, tools, model, maxTokens = MAX_TOKENS, sig
   let lastErr;
   for (let attempt = 0; attempt < 4; attempt++) {
     let res;
+    // hard timeout so a stalled generation fails fast instead of hanging forever
+    const ctl = new AbortController();
+    const onAbort = () => ctl.abort();
+    if (signal) signal.addEventListener("abort", onAbort, { once: true });
+    const timer = setTimeout(() => ctl.abort(new Error("timeout")), REQUEST_TIMEOUT_MS);
     try {
       res = await fetch(`${BASE_URL}/chat/completions`, {
         method: "POST",
@@ -29,13 +34,17 @@ export async function chat({ messages, tools, model, maxTokens = MAX_TOKENS, sig
           "content-type": "application/json",
         },
         body: JSON.stringify(body),
-        signal,
+        signal: ctl.signal,
       });
     } catch (e) {
-      lastErr = e;
-      if (e.name === "AbortError") throw e;
+      // caller aborted -> propagate; our own timeout -> retry
+      if (signal?.aborted) throw e;
+      lastErr = new Error(`request lỗi/timeout (>${REQUEST_TIMEOUT_MS}ms): ${e.message}`);
       await SLEEP(500 * (attempt + 1));
       continue;
+    } finally {
+      clearTimeout(timer);
+      if (signal) signal.removeEventListener("abort", onAbort);
     }
 
     const text = await res.text();
