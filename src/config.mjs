@@ -39,7 +39,8 @@ export const GO_MODELS = [
   "mimo-v2.5-pro", "mimo-v2.5",
 ];
 
-export const DEFAULT_MODEL = process.env.TAW_MODEL || "glm-5";
+// kimi-k2.5: non-reasoning → in output thẳng (glm/deepseek/minimax đốt token vào reasoning).
+export const DEFAULT_MODEL = process.env.TAW_MODEL || "kimi-k2.5";
 
 export const MAX_STEPS = Number(process.env.TAW_MAX_STEPS || 40);
 export const MAX_TOKENS = Number(process.env.TAW_MAX_TOKENS || 8192);
