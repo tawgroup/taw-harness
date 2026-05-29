@@ -39,9 +39,9 @@ export const GO_MODELS = [
   "mimo-v2.5-pro", "mimo-v2.5",
 ];
 
-// glm-5: ĐÁNG TIN cho vòng lặp agent (multi-turn tool ổn định).
-// kimi-k2.5 nhanh + non-reasoning NHƯNG hỏng multi-turn ("Provider returned error" sau
-// vài tool-result) → chỉ hợp gen 1-phát (TAW_MODEL=kimi-k2.5 + max-steps 1-2), KHÔNG nên làm default.
+// glm-5: RELIABLE for the agent loop (stable multi-turn tool calls).
+// kimi-k2.5 is fast + non-reasoning BUT breaks on multi-turn ("Provider returned error"
+// after a few tool-results) → only good for one-shot gen (TAW_MODEL=kimi-k2.5 + max-steps 1-2), not a good default.
 export const DEFAULT_MODEL = process.env.TAW_MODEL || "glm-5";
 
 export const MAX_STEPS = Number(process.env.TAW_MAX_STEPS || 40);
@@ -54,8 +54,8 @@ export const TOOL_OUTPUT_CAP = Number(process.env.TAW_TOOL_CAP || 30000);
 export function assertKey() {
   if (!API_KEY) {
     throw new Error(
-      "Chưa có API key. Set OPENCODE_API_KEY (key gói OpenCode Go) trong env hoặc .env.\n" +
-        "Lấy key tại: https://opencode.ai → workspace → API Keys",
+      "No API key. Set OPENCODE_API_KEY (your OpenCode Go plan key) in env or .env.\n" +
+        "Get a key at: https://opencode.ai → workspace → API Keys",
     );
   }
 }

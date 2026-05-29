@@ -56,10 +56,10 @@ export function loadSkillTool(skills) {
       function: {
         name: "load_skill",
         description:
-          "Nạp hướng dẫn chi tiết của 1 skill khi tác vụ liên quan. Trả về nội dung skill để làm theo.",
+          "Load a skill's detailed playbook when the task is related. Returns the skill content to follow.",
         parameters: {
           type: "object",
-          properties: { name: { type: "string", description: "tên skill" } },
+          properties: { name: { type: "string", description: "skill name" } },
           required: ["name"],
         },
       },
@@ -68,7 +68,7 @@ export function loadSkillTool(skills) {
     preview: (a) => a.name,
     async run(a) {
       const s = skills.get(a.name);
-      if (!s) return `LỖI: không có skill "${a.name}". Có: ${[...skills.keys()].join(", ")}`;
+      if (!s) return `ERROR: no skill "${a.name}". Available: ${[...skills.keys()].join(", ")}`;
       return `# Skill: ${s.name}\n\n${s.body}`;
     },
   };

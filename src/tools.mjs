@@ -6,7 +6,7 @@ import { TOOL_OUTPUT_CAP } from "./config.mjs";
 
 const cap = (s) =>
   s.length > TOOL_OUTPUT_CAP
-    ? s.slice(0, TOOL_OUTPUT_CAP) + `\n…[cắt bớt, còn ${s.length - TOOL_OUTPUT_CAP} ký tự]`
+    ? s.slice(0, TOOL_OUTPUT_CAP) + `\n…[truncated, ${s.length - TOOL_OUTPUT_CAP} more chars]`
     : s;
 
 const resolve = (ctx, p) => (path.isAbsolute(p) ? p : path.join(ctx.cwd, p));
@@ -17,7 +17,7 @@ function sh(command, cwd, timeout = 120000) {
       const out = (stdout || "") + (stderr ? (stdout ? "\n" : "") + stderr : "");
       const code = err && typeof err.code === "number" ? err.code : err ? 1 : 0;
       let s = out.trim();
-      if (err && err.killed) s += `\n[timeout sau ${timeout}ms]`;
+      if (err && err.killed) s += `\n[timed out after ${timeout}ms]`;
       resolve(`(exit ${code})\n${s || "(no output)"}`);
     });
   });
@@ -29,11 +29,11 @@ export const TOOLS = {
       type: "function",
       function: {
         name: "read_file",
-        description: "Đọc nội dung 1 file text. Trả về kèm số dòng.",
+        description: "Read the contents of a text file. Returns it with line numbers.",
         parameters: {
           type: "object",
           properties: {
-            path: { type: "string", description: "đường dẫn file (tuyệt đối hoặc tương đối cwd)" },
+            path: { type: "string", description: "file path (absolute or relative to cwd)" },
           },
           required: ["path"],
         },
@@ -43,7 +43,7 @@ export const TOOLS = {
     preview: (a) => a.path,
     async run(a, ctx) {
       const f = resolve(ctx, a.path);
-      if (!fs.existsSync(f)) return `LỖI: không tìm thấy ${a.path}`;
+      if (!fs.existsSync(f)) return `ERROR: not found ${a.path}`;
       const data = fs.readFileSync(f, "utf8");
       const numbered = data
         .split("\n")
@@ -58,7 +58,7 @@ export const TOOLS = {
       type: "function",
       function: {
         name: "write_file",
-        description: "Ghi (tạo mới hoặc đè) toàn bộ nội dung 1 file. Tự tạo thư mục cha.",
+        description: "Write (create or overwrite) a file's full contents. Creates parent dirs.",
         parameters: {
           type: "object",
           properties: {
@@ -75,7 +75,7 @@ export const TOOLS = {
       const f = resolve(ctx, a.path);
       fs.mkdirSync(path.dirname(f), { recursive: true });
       fs.writeFileSync(f, a.content);
-      return `OK: đã ghi ${a.path} (${a.content.length} bytes)`;
+      return `OK: wrote ${a.path} (${a.content.length} bytes)`;
     },
   },
 
@@ -85,7 +85,7 @@ export const TOOLS = {
       function: {
         name: "edit_file",
         description:
-          "Thay thế chuỗi trong file. old_string phải khớp duy nhất (trừ khi replace_all=true).",
+          "Replace a string in a file. old_string must match exactly once (unless replace_all=true).",
         parameters: {
           type: "object",
           properties: {
@@ -102,17 +102,17 @@ export const TOOLS = {
     preview: (a) => a.path,
     async run(a, ctx) {
       const f = resolve(ctx, a.path);
-      if (!fs.existsSync(f)) return `LỖI: không tìm thấy ${a.path}`;
+      if (!fs.existsSync(f)) return `ERROR: not found ${a.path}`;
       const data = fs.readFileSync(f, "utf8");
       const count = data.split(a.old_string).length - 1;
-      if (count === 0) return `LỖI: không tìm thấy old_string trong ${a.path}`;
+      if (count === 0) return `ERROR: old_string not found in ${a.path}`;
       if (count > 1 && !a.replace_all)
-        return `LỖI: old_string khớp ${count} chỗ. Thêm replace_all=true hoặc cho chuỗi dài hơn.`;
+        return `ERROR: old_string matches ${count} places. Add replace_all=true or use a longer string.`;
       const next = a.replace_all
         ? data.split(a.old_string).join(a.new_string)
         : data.replace(a.old_string, a.new_string);
       fs.writeFileSync(f, next);
-      return `OK: sửa ${a.path} (${a.replace_all ? count : 1} chỗ)`;
+      return `OK: edited ${a.path} (${a.replace_all ? count : 1} place${a.replace_all && count > 1 ? "s" : ""})`;
     },
   },
 
@@ -121,7 +121,7 @@ export const TOOLS = {
       type: "function",
       function: {
         name: "list_dir",
-        description: "Liệt kê file/thư mục trong 1 đường dẫn.",
+        description: "List files/directories at a path.",
         parameters: {
           type: "object",
           properties: { path: { type: "string" } },
@@ -133,13 +133,13 @@ export const TOOLS = {
     preview: (a) => a.path,
     async run(a, ctx) {
       const d = resolve(ctx, a.path);
-      if (!fs.existsSync(d)) return `LỖI: không tìm thấy ${a.path}`;
+      if (!fs.existsSync(d)) return `ERROR: not found ${a.path}`;
       const items = fs.readdirSync(d, { withFileTypes: true });
       return cap(
         items
           .map((e) => (e.isDirectory() ? e.name + "/" : e.name))
           .sort()
-          .join("\n") || "(rỗng)",
+          .join("\n") || "(empty)",
       );
     },
   },
@@ -149,19 +149,19 @@ export const TOOLS = {
       type: "function",
       function: {
         name: "grep",
-        description: "Tìm pattern (regex) trong code. Dùng ripgrep nếu có.",
+        description: "Search for a regex pattern in code. Uses ripgrep if available.",
         parameters: {
           type: "object",
           properties: {
             pattern: { type: "string" },
-            path: { type: "string", description: "thư mục/file, mặc định cwd" },
+            path: { type: "string", description: "dir/file, defaults to cwd" },
           },
           required: ["pattern"],
         },
       },
     },
     needsApproval: false,
-    preview: (a) => `"${a.pattern}" trong ${a.path || "."}`,
+    preview: (a) => `"${a.pattern}" in ${a.path || "."}`,
     async run(a, ctx) {
       const where = a.path ? resolve(ctx, a.path) : ctx.cwd;
       const q = a.pattern.replace(/'/g, "'\\''");
@@ -176,7 +176,7 @@ export const TOOLS = {
       function: {
         name: "bash",
         description:
-          "Chạy lệnh shell bash trong cwd của project. Dùng để build, test, git, cài deps, chạy code...",
+          "Run a bash shell command in the project cwd. Use for build, test, git, installing deps, running code...",
         parameters: {
           type: "object",
           properties: {

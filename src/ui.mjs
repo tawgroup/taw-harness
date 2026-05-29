@@ -19,12 +19,12 @@ export function banner(model) {
   return (
     "\n" +
     c.bold(c.magenta("  ▟▙ taw harness")) +
-    c.dim("  · powered by OpenCode Go (model rẻ)") +
+    c.dim("  · powered by OpenCode Go (cheap models)") +
     "\n" +
     line +
     "\n" +
     c.dim("  model: ") + c.cyan(model) +
-    c.dim("   ·  /help để xem lệnh  ·  /exit để thoát") +
+    c.dim("   ·  /help for commands  ·  /exit to quit") +
     "\n" +
     line +
     "\n"

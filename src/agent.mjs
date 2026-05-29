@@ -73,7 +73,7 @@ export function createAgent(opts = {}) {
           messages.push({
             role: "tool",
             tool_call_id: call.id,
-            content: !tool ? `LỖI: không có tool "${name}"` : "LỖI: arguments không phải JSON hợp lệ",
+            content: !tool ? `ERROR: no such tool "${name}"` : "ERROR: arguments are not valid JSON",
           });
           continue;
         }
@@ -86,7 +86,7 @@ export function createAgent(opts = {}) {
             messages.push({
               role: "tool",
               tool_call_id: call.id,
-              content: "Người dùng TỪ CHỐI chạy tool này. Hãy thử cách khác hoặc hỏi lại.",
+              content: "The user DENIED running this tool. Try another approach or ask.",
             });
             continue;
           }
@@ -96,14 +96,14 @@ export function createAgent(opts = {}) {
         try {
           result = await tool.run(args, ctx);
         } catch (e) {
-          result = `LỖI khi chạy tool: ${e.message}`;
+          result = `ERROR running tool: ${e.message}`;
         }
         onEvent({ type: "tool_result", name, result });
         messages.push({ role: "tool", tool_call_id: call.id, content: String(result) });
       }
     }
     onEvent({ type: "max_steps" });
-    return "(đã đạt giới hạn số bước)";
+    return "(reached step limit)";
   }
 
   return {

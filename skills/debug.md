@@ -1,13 +1,13 @@
 ---
 name: debug
-description: Quy trình debug có hệ thống — tái hiện lỗi, tìm root cause, sửa tối thiểu, kiểm chứng.
+description: Systematic debugging — reproduce, find root cause, minimal fix, verify.
 ---
 
-Khi gặp lỗi/bug:
+When you hit an error/bug:
 
-1. **Tái hiện**: chạy lệnh gây lỗi bằng `bash`, đọc full stack trace / thông báo lỗi.
-2. **Khoanh vùng**: dùng `grep` tìm hàm/biến/file trong thông báo lỗi. `read_file` các chỗ nghi ngờ.
-3. **Root cause**: xác định NGUYÊN NHÂN GỐC, không vá triệu chứng. Giải thích ngắn gọn vì sao lỗi.
-4. **Sửa tối thiểu**: `edit_file` thay đổi nhỏ nhất đủ khắc phục. Không refactor lan man.
-5. **Kiểm chứng**: chạy lại lệnh/test ban đầu bằng `bash`, xác nhận hết lỗi.
-6. Báo cáo: lỗi gì, vì sao, sửa gì (1-3 dòng).
+1. **Reproduce**: run the failing command with `bash`, read the FULL stack trace / error message.
+2. **Localize**: `grep` for the function/variable/file named in the error. `read_file` the suspicious spots.
+3. **Root cause**: identify the ROOT CAUSE, don't patch symptoms. Briefly explain why it fails.
+4. **Minimal fix**: `edit_file` the smallest change that fixes it. Don't refactor unrelated code.
+5. **Verify**: re-run the original command/test with `bash`, confirm the error is gone.
+6. Report: what broke, why, what you changed (1-3 lines).

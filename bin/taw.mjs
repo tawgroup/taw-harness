@@ -32,35 +32,35 @@ const headlessEvents = {
     if (ev.type === "assistant") process.stdout.write(c.bold("⏺ ") + ev.text.trim() + "\n");
     else if (ev.type === "tool_call") process.stderr.write(c.green("⚒ ") + ev.name + c.dim(" " + String(ev.preview).split("\n")[0].slice(0, 100)) + "\n");
     else if (ev.type === "tool_result") process.stderr.write(c.dim(String(ev.result).split("\n").slice(0, 3).join("\n").slice(0, 240)) + "\n");
-    else if (ev.type === "max_steps") process.stderr.write(c.yellow("⚠ đạt giới hạn số bước\n"));
+    else if (ev.type === "max_steps") process.stderr.write(c.yellow("⚠ reached step limit\n"));
   },
 };
 
 const model = getFlag("--model", DEFAULT_MODEL);
 
-const HELP = `taw harness — coding agent chạy bằng OpenCode Go (model rẻ)
+const HELP = `taw harness — coding agent powered by OpenCode Go (cheap models)
 
-Cách dùng:
-  taw                          mở TUI tương tác (chat)
-  taw run "<yêu cầu>"          chạy 1 tác vụ rồi thoát (headless, tự duyệt)
-  taw -p "<yêu cầu>"           alias của run
-  taw build "<yêu cầu>" --verify "<lệnh>"
-                               vòng tự làm: build → chạy lệnh kiểm chứng →
-                               nếu fail thì tự sửa → lặp tới khi PASS (không cần can thiệp)
-  taw models                   liệt kê model gói Go
+Usage:
+  taw                          open interactive TUI (chat)
+  taw run "<task>"             run one task then exit (headless, auto-approve)
+  taw -p "<task>"             alias of run
+  taw build "<task>" --verify "<cmd>"
+                               self-driving loop: build → run verify command →
+                               if it fails, auto-fix → repeat until it PASSES (hands-off)
+  taw models                   list OpenCode Go models
   taw --help
 
-Tuỳ chọn:
-  --model <id>                 chọn model (mặc định ${DEFAULT_MODEL})
-  --max-steps <n>              giới hạn số bước mỗi vòng
-  --cwd <path>                 thư mục làm việc
-  --task-file <path>           đọc nội dung tác vụ từ file (giữ cmdline gọn, an toàn)
-  --verify "<lệnh>"            (build) lệnh shell xác nhận thành công (exit 0 = đạt)
-  --rounds <n>                 (build) số vòng sửa tối đa (mặc định 4)
+Options:
+  --model <id>                 pick a model (default ${DEFAULT_MODEL})
+  --max-steps <n>              max agent steps per round
+  --cwd <path>                 working directory
+  --task-file <path>           read the task from a file (keeps the cmdline short & safe)
+  --verify "<cmd>"             (build) shell command that proves success (exit 0 = pass)
+  --rounds <n>                 (build) max auto-fix rounds (default 4)
 
 Env:
-  OPENCODE_API_KEY=<key gói Go>   (bắt buộc; hoặc đặt trong .env)
-  TAW_REQUEST_TIMEOUT=<ms>        timeout mỗi request model (mặc định 180000)
+  OPENCODE_API_KEY=<Go plan key>   (required; or put it in .env)
+  TAW_REQUEST_TIMEOUT=<ms>         per-request timeout (default 180000)
 `;
 
 async function main() {
@@ -83,7 +83,7 @@ async function main() {
     const task = taskFile
       ? fs.readFileSync(taskFile, "utf8").trim()
       : parseTask(["--model", "--max-steps", "--cwd", "--task-file"]);
-    if (!task) { process.stderr.write("Thiếu nội dung tác vụ.\n"); process.exit(2); }
+    if (!task) { process.stderr.write("Missing task.\n"); process.exit(2); }
 
     const cwd = getFlag("--cwd", process.cwd());
     const maxSteps = Number(getFlag("--max-steps", 0)) || undefined;
@@ -107,43 +107,43 @@ async function main() {
     const rounds = Number(getFlag("--rounds", 4)) || 4;
     const cwd = getFlag("--cwd", process.cwd());
     const maxSteps = Number(getFlag("--max-steps", 0)) || undefined;
-    if (!task) { process.stderr.write("Thiếu nội dung tác vụ.\n"); process.exit(2); }
-    if (!verify) { process.stderr.write('build cần --verify "<lệnh kiểm chứng>" (exit 0 = đạt).\n'); process.exit(2); }
+    if (!task) { process.stderr.write("Missing task.\n"); process.exit(2); }
+    if (!verify) { process.stderr.write('build needs --verify "<command>" (exit 0 = pass).\n'); process.exit(2); }
 
     const agent = createAgent({ model, cwd, maxSteps, approve: async () => true, ...headlessEvents });
 
     let prompt =
       task +
-      "\n\nLƯU Ý: sau khi bạn làm xong, hệ thống sẽ TỰ CHẠY lệnh kiểm chứng để xác nhận app chạy thật. " +
-      "Nếu có skill phù hợp (vd 'fullstack') hãy gọi load_skill để theo playbook (chia file nhỏ, tách dữ liệu test, map '/'→index.html, tự boot+curl).";
+      "\n\nNOTE: after you finish, the system will AUTOMATICALLY run a verify command to confirm the app really works. " +
+      "If a relevant skill exists (e.g. 'fullstack'), call load_skill to follow its playbook (split into small files, isolate test data, map '/'→index.html, self boot+curl).";
 
     for (let round = 1; round <= rounds; round++) {
-      process.stderr.write(c.bold(`\n=== Vòng ${round}/${rounds} ===\n`));
+      process.stderr.write(c.bold(`\n=== Round ${round}/${rounds} ===\n`));
       try {
         await agent.send(prompt);
       } catch (e) {
-        process.stderr.write(c.red(`✗ lỗi agent: ${e.message}\n`));
+        process.stderr.write(c.red(`✗ agent error: ${e.message}\n`));
         process.exit(1);
       }
 
-      process.stderr.write(c.dim(`\n▶ Kiểm chứng: ${verify}\n`));
+      process.stderr.write(c.dim(`\n▶ Verify: ${verify}\n`));
       const v = spawnSync("bash", ["-lc", verify], { cwd, encoding: "utf8", timeout: 120000 });
       const out = ((v.stdout || "") + (v.stderr || "")).trim();
 
       if (v.status === 0) {
-        process.stdout.write(c.green(`\n✓ Kiểm chứng PASS ở vòng ${round}. Hoàn thành.\n`));
+        process.stdout.write(c.green(`\n✓ Verify PASSED on round ${round}. Done.\n`));
         if (out) process.stdout.write(out.slice(-1200) + "\n");
         return;
       }
 
-      process.stderr.write(c.yellow(`✗ Kiểm chứng FAIL (exit ${v.status}). Đưa lỗi lại cho agent sửa.\n`));
+      process.stderr.write(c.yellow(`✗ Verify FAILED (exit ${v.status}). Feeding the error back to the agent.\n`));
       prompt =
-        `Lệnh kiểm chứng \`${verify}\` THẤT BẠI (exit code ${v.status}). Output:\n\n` +
+        `The verify command \`${verify}\` FAILED (exit code ${v.status}). Output:\n\n` +
         `${out.slice(-4000)}\n\n` +
-        "Hãy đọc lỗi, sửa code cho đúng nguyên nhân rồi để hệ thống chạy lại. Sửa là chính, đừng giải thích dài.";
+        "Read the error, fix the root cause, then let the system run it again. Focus on fixing, keep explanations short.";
     }
 
-    process.stderr.write(c.red(`\n✗ Vẫn chưa PASS sau ${rounds} vòng. Dừng.\n`));
+    process.stderr.write(c.red(`\n✗ Still not passing after ${rounds} rounds. Stopping.\n`));
     process.exit(1);
   }
 

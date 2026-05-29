@@ -1,72 +1,76 @@
 # ▟▙ taw harness
 
-A tiny **from-scratch coding agent harness** — kiểu Claude Code nhưng chạy bằng **OpenCode Go** (các model coding rẻ: GLM, DeepSeek, Qwen, Kimi, MiniMax…). Tự viết tool-use loop, **zero dependency**, chạy thẳng trên **Node 20+** hoặc **Bun**, không cần build.
+A tiny **from-scratch coding agent harness** — Claude Code style, but running on **OpenCode Go** (cheap coding models: GLM, DeepSeek, Qwen, Kimi, MiniMax…). Hand-written tool-use loop, **zero dependencies**, runs directly on **Node 20+** or **Bun**, no build step.
 
-> Triết lý: model "rẻ rách" + một harness gọn = vẫn lập trình được. Không cần Claude Code, không cần API đắt.
+> Philosophy: a "dirt-cheap" model + a small harness = you can still ship code. No Claude Code needed, no expensive API needed.
 
-## Có gì
-- 🔁 **Agent loop** tự gọi tool tới khi xong việc (native function-calling).
+## What's inside
+- 🔁 **Agent loop** that calls tools until the task is done (native function-calling).
 - 🛠️ **Tools**: `read_file`, `write_file`, `edit_file`, `list_dir`, `grep`, `bash`.
-- 🧩 **Skills**: file Markdown nạp theo nhu cầu (như Claude Code skills). Để trong `skills/`, hoặc `.taw/skills/` (project), hoặc `~/.taw/skills/` (user).
-- 💬 **TUI** tương tác (màu, spinner, duyệt thao tác) + chế độ **headless** cho CI/auto-test.
-- 💸 Chạy đúng **gói OpenCode Go $10/tháng** (endpoint `zen/go/v1`, `cost: 0`).
+- 🧩 **Skills**: Markdown files loaded on demand (like Claude Code skills). Put them in `skills/`, or `.taw/skills/` (project), or `~/.taw/skills/` (user).
+- 💬 Interactive **TUI** (color, spinner, action approval) + **headless** mode for CI/auto-build.
+- ♻️ **Self-verify build** (`taw build --verify`): build → run a verify command → auto-fix → repeat until it passes.
+- 💸 Runs on the **$10/month OpenCode Go plan** (endpoint `zen/go/v1`, `cost: 0`).
 
-## Cài đặt
+## Install
 ```bash
 git clone https://github.com/tawgroup/taw-harness
 cd taw-harness
-cp .env.example .env          # rồi điền OPENCODE_API_KEY (key gói Go)
-node bin/taw.mjs              # mở TUI
-# hoặc cài global:
-npm link                      # rồi gõ `taw` ở bất kỳ đâu
+cp .env.example .env          # then fill in OPENCODE_API_KEY (Go plan key)
+node bin/taw.mjs              # open the TUI
+# or install globally:
+npm link                      # then run `taw` anywhere
 ```
 
-Cần: Node ≥ 20 (hoặc Bun). API key gói Go lấy ở https://opencode.ai → workspace → **API Keys**.
+Requires: Node ≥ 20 (or Bun). Get a Go plan API key at https://opencode.ai → workspace → **API Keys**.
 
-## Dùng
+## Use
 ```bash
-taw                                   # TUI tương tác (chat)
-taw run "viết script python tính fibonacci rồi chạy thử"   # headless
-taw run "fix lỗi build trong repo này" --model qwen3.6-plus
-taw models                            # liệt kê model gói Go
+taw                                          # interactive TUI (chat)
+taw run "write a python fibonacci script and run it"   # headless
+taw run "fix the build error in this repo" --model qwen3.6-plus
+taw build "make a todo API in Node http with tests" --verify "node --test test.mjs"
+taw models                                   # list Go plan models
 ```
 
-### Lệnh trong TUI
-`/model <id>` · `/models` · `/yolo` (tự duyệt) · `/safe` · `/skills` · `/clear` · `/exit`
+### TUI commands
+`/model <id>` · `/models` · `/yolo` (auto-approve) · `/safe` · `/skills` · `/clear` · `/exit`
 
-## Model gói Go
+## Go plan models
 `glm-5.1` `glm-5` · `deepseek-v4-pro` `deepseek-v4-flash` · `qwen3.7-max` `qwen3.6-plus` `qwen3.5-plus` · `kimi-k2.6` `kimi-k2.5` · `minimax-m2.7` `minimax-m2.5` · `mimo-v2.5-pro` `mimo-v2.5`
 
-Tất cả đều hỗ trợ tool-calling. Mặc định **`glm-5`** — đáng tin cho vòng lặp agent nhiều bước (multi-turn tool ổn định). `kimi-k2.5` nhanh + non-reasoning, hợp **gen 1-phát** (1 file) nhưng **hỏng multi-turn** trên endpoint Go (báo "Provider returned error" sau vài tool-result) → đừng dùng cho task nhiều bước. Reasoning model (`glm`/`deepseek`/`minimax`) cần `TAW_MAX_TOKENS` cao khi gen file lớn.
+All support tool-calling. Default is **`glm-5`** — reliable for the multi-step agent loop (stable multi-turn tool use). `kimi-k2.5` is fast + non-reasoning, good for **one-shot gen** (a single file) but **breaks on multi-turn** on the Go endpoint ("Provider returned error" after a few tool-results) → don't use it for multi-step tasks. Reasoning models (`glm`/`deepseek`/`minimax`) need a higher `TAW_MAX_TOKENS` when generating large files.
 
-> ⚠️ Throughput gói Go biến động (17–47 tok/s); file lớn có thể mất vài phút. Harness có request-timeout (`TAW_REQUEST_TIMEOUT`, mặc định 180s) để không treo. File cực lớn (>15k ký tự) nên chia nhỏ nhiều bước thay vì 1 `write_file`.
+> ⚠️ Go plan throughput varies (17–47 tok/s); large files can take a few minutes. The harness has a request-timeout (`TAW_REQUEST_TIMEOUT`, default 180s) so it won't hang. Very large files (>15k chars) are best generated across several steps instead of one `write_file`.
 
-## Viết skill mới
-Tạo `skills/<tên>.md`:
+## Write a new skill
+Create `skills/<name>.md`:
 ```md
 ---
-name: ten-skill
-description: mô tả 1 dòng (hiện trong index để model quyết định nạp)
+name: skill-name
+description: one-line summary (shown in the index so the model decides when to load it)
 ---
-Hướng dẫn chi tiết các bước...
+Detailed step-by-step instructions...
 ```
+
+Bundled skills: `fullstack`, `frontend`, `api-design`, `database`, `testing`, `refactor`, `debug`, `python`, `docker`, `security`, `perf`, `docs`, `git-commit`, `git-pr`, `scaffold-node`.
 
 ## Test
 ```bash
-npm test            # offline (tools + skills) luôn chạy
-OPENCODE_API_KEY=sk-... npm test   # thêm end-to-end gọi gói Go thật
+npm test            # offline (tools + skills) always runs
+OPENCODE_API_KEY=sk-... npm test   # also runs the live end-to-end call to the Go plan
 ```
 
-## Kiến trúc
+## Architecture
 ```
-bin/taw.mjs      CLI (TUI | run | models)
-src/agent.mjs    vòng lặp model<->tool
-src/provider.mjs client OpenCode Go (zen/go/v1, OpenAI-compatible)
+bin/taw.mjs      CLI (TUI | run | build | models)
+src/agent.mjs    model<->tool loop
+src/provider.mjs OpenCode Go client (zen/go/v1, OpenAI-compatible)
 src/tools.mjs    read/write/edit/list/grep/bash
-src/skills.mjs   nạp skill markdown
+src/skills.mjs   markdown skill loader
 src/prompt.mjs   system prompt
-src/tui.mjs      giao diện terminal
-skills/          skill mẫu
+src/tui.mjs      terminal UI
+skills/          bundled skills
 ```
 
 MIT · made by [tawgroup](https://github.com/tawgroup)

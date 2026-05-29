@@ -1,31 +1,31 @@
 ---
 name: fullstack
-description: Playbook xây app full-stack (web có backend + frontend) chạy được ngay, tránh các bẫy hay làm treo/hỏng.
+description: Playbook for building a full-stack web app (backend + frontend) that actually runs, avoiding the usual traps.
 ---
 
-# Playbook xây app full-stack
+# Full-stack build playbook
 
-Theo đúng thứ tự này. Mục tiêu: app CHẠY ĐƯỢC THẬT, không chỉ "có code".
+Follow this order. Goal: an app that REALLY RUNS, not just "code that exists".
 
-## 1. Lập kế hoạch theo phase (làm tuần tự, đừng nhồi 1 lần)
-1. **Backend trước**: data store + API + dữ liệu mẫu (seed) + test backend.
-2. **Frontend sau**: UI gọi vào API đã chạy được.
-3. **Kiểm chứng cuối**: khởi động server + gọi thử (curl) trang chủ và API.
+## 1. Plan in phases (sequential, don't cram it into one shot)
+1. **Backend first**: data store + API + seed data + backend test.
+2. **Frontend next**: UI that calls the working API.
+3. **Final check**: start the server + curl the home page and the API.
 
-## 2. Quy tắc chống treo / chống hỏng (QUAN TRỌNG)
-- **CHIA FILE NHỎ < ~180 dòng/file.** Đừng sinh 1 file JS/HTML khổng lồ trong 1 lượt — dễ vượt giới hạn token và làm treo. Ví dụ frontend: tách `core.js`, `auth.js`, `<từng-màn>.js`, `main.js` thay vì 1 `app.js` 700 dòng.
-- **Dữ liệu test phải CÔ LẬP.** Test không được ghi đè file dữ liệu thật (vd `data.json`). Cho test dùng file riêng (vd `data.test.json` qua biến môi trường) HOẶC seed lại sau khi test xong. Không để test phá dữ liệu demo.
-- **Phục vụ static đúng**: route `/` PHẢI trả `index.html` (đừng để trả 404 vì map nhầm vào thư mục). Kiểm tra: `curl localhost:PORT/` ra 200.
-- Sửa file đã có thì dùng edit_file, đừng ghi đè cả file.
+## 2. Anti-hang / anti-break rules (IMPORTANT)
+- **SPLIT INTO SMALL FILES < ~180 lines each.** Don't generate one giant JS/HTML file in a single shot — it tends to exceed the token cap and hang. e.g. frontend: split `core.js`, `auth.js`, `<each-view>.js`, `main.js` instead of one 700-line `app.js`.
+- **Test data MUST be isolated.** Tests must not overwrite the real data file (e.g. `data.json`). Use a separate file for tests (e.g. `data.test.json` via an env var) OR re-seed after tests. Don't let tests destroy demo data.
+- **Serve static correctly**: route `/` MUST return `index.html` (don't 404 by mapping it to a directory). Check: `curl localhost:PORT/` returns 200.
+- Edit existing files with edit_file, don't rewrite whole files.
 
-## 3. Tự kiểm chứng trước khi báo xong
-- Backend: chạy `node --test` (hoặc test tương ứng) tới khi PASS.
-- Frontend: `node --check` từng file JS.
-- Boot thật: chạy server ở 1 cổng, `curl /` và `curl 1 endpoint API chính` → đúng status. Tắt server sau khi xong.
-- **AN TOÀN khi tắt server**: lưu PID (`PORT=4599 node server.mjs & PID=$!`) rồi `kill "$PID"`. KHÔNG `pkill -f node`/`pkill -f server`/`lsof -ti:PORT|xargs kill` — pattern rộng sẽ giết chính harness (cmdline của nó cũng chứa chữ "node"/"server"). Dùng cổng test ít đụng độ (vd 4599) để khỏi phải dọn process cũ.
-- Nếu lệnh kiểm chứng do hệ thống đưa vào báo FAIL: đọc kỹ output, sửa đúng nguyên nhân, không đoán mò.
+## 3. Self-verify before reporting done
+- Backend: run `node --test` (or the relevant test) until it PASSES.
+- Frontend: `node --check` each JS file.
+- Real boot: run the server on a port, `curl /` and `curl one main API endpoint` → correct status. Stop the server after.
+- **SAFE shutdown**: save the PID (`PORT=4599 node server.mjs & PID=$!`) then `kill "$PID"`. NEVER `pkill -f node`/`pkill -f server`/`lsof -ti:PORT|xargs kill` — broad patterns kill the harness itself (its cmdline also contains "node"/"server"). Use an uncommon test port (e.g. 4599) to avoid clearing old processes.
+- If the system-provided verify command reports FAIL: read the output carefully, fix the real cause, don't guess.
 
-## 4. Tiêu chí UI (nếu có frontend)
-- Layout rõ ràng (sidebar/topbar nếu là dashboard), phối màu nhất quán, bo góc, đổ bóng nhẹ, trạng thái dùng badge màu.
-- Format số/tiền theo locale (vd VND: `185.000 ₫`).
-- Toàn bộ chữ theo ngôn ngữ người dùng yêu cầu.
+## 4. UI criteria (if there's a frontend)
+- Clear layout (sidebar/topbar for a dashboard), consistent palette, rounded corners, subtle shadow, status badges.
+- Format numbers/money per locale.
+- All user-facing text in the language the user asked for.
