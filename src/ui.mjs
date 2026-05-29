@@ -12,7 +12,34 @@ export const c = {
   magenta: wrap(35, 39),
   cyan: wrap(36, 39),
   gray: wrap(90, 39),
+  italic: wrap(3, 23),
+  underline: wrap(4, 24),
 };
+
+// Minimal zero-dep Markdown → ANSI for the TUI: headings, bold, italic, inline code,
+// bullets, fenced code blocks, links. Safe to re-scan (ANSI codes contain no md chars).
+function renderInline(s) {
+  s = s.replace(/`([^`]+)`/g, (_, t) => c.cyan(t));
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_, t) => c.bold(t));
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, (_, a, t) => a + c.italic(t));
+  s = s.replace(/(^|[^_\w])_([^_\n]+)_(?![_\w])/g, (_, a, t) => a + c.italic(t));
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, t, u) => c.underline(c.blue(t)) + c.dim(` (${u})`));
+  return s;
+}
+
+export function renderMarkdown(text) {
+  const out = [];
+  let inFence = false;
+  for (let line of String(text).split("\n")) {
+    if (/^\s*```/.test(line)) { inFence = !inFence; continue; } // drop fence markers
+    if (inFence) { out.push(c.dim("  │ ") + c.cyan(line)); continue; }
+    const h = line.match(/^\s*(#{1,6})\s+(.*)$/);
+    if (h) { out.push(c.bold(c.yellow(h[2]))); continue; }
+    line = line.replace(/^(\s*)[-*]\s+/, (_, sp) => sp + c.yellow("• "));
+    out.push(renderInline(line));
+  }
+  return out.join("\n");
+}
 
 export function banner(model) {
   const line = c.dim("─".repeat(48));
