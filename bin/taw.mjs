@@ -33,6 +33,8 @@ const headlessEvents = {
     else if (ev.type === "tool_call") process.stderr.write(c.green("⚒ ") + ev.name + c.dim(" " + String(ev.preview).split("\n")[0].slice(0, 100)) + "\n");
     else if (ev.type === "tool_result") process.stderr.write(c.dim(String(ev.result).split("\n").slice(0, 3).join("\n").slice(0, 240)) + "\n");
     else if (ev.type === "max_steps") process.stderr.write(c.yellow("⚠ reached step limit\n"));
+    else if (ev.type === "mcp") process.stderr.write(c.dim(`🔌 MCP ${ev.server}: ${ev.count} tools\n`));
+    else if (ev.type === "mcp_error") process.stderr.write(c.dim(`🔌 MCP ${ev.server}: ${ev.error}\n`));
   },
 };
 

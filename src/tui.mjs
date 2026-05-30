@@ -75,6 +75,12 @@ export async function runTui({ model = DEFAULT_MODEL } = {}) {
         case "max_steps":
           process.stdout.write(c.yellow("  ⚠ reached step limit\n"));
           break;
+        case "mcp":
+          process.stdout.write(c.dim(`  🔌 MCP ${ev.server}: ${ev.count} tools\n`));
+          break;
+        case "mcp_error":
+          process.stdout.write(c.dim(`  🔌 MCP ${ev.server}: ${ev.error}\n`));
+          break;
       }
     },
     async approve(name, args, preview) {
