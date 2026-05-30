@@ -50,8 +50,16 @@ All support tool-calling. Default is **`glm-5`** — reliable for the multi-step
 
 > ⚠️ Go plan throughput varies (17–47 tok/s); large files can take a few minutes. The harness has a request-timeout (`TAW_REQUEST_TIMEOUT`, default 180s) so it won't hang. Very large files (>15k chars) are best generated across several steps instead of one `write_file`.
 
-## MCP (experimental — WIP)
-An MCP client (`src/mcp.mjs`) is in the tree but **not finished**: it is **not wired into the agent** and **not verified end-to-end** yet (the stdio handshake stalls after `initialize` in the integrated path; HTTP servers like shipkit use a session handshake it doesn't speak yet). Treat it as a starting point, not a feature. Contributions welcome.
+## MCP (use external tool servers)
+tawx is an **MCP client**: drop a config at `~/.taw/mcp.json` (or `<project>/.taw/mcp.json`) and it connects to those servers on the first turn and exposes their tools to the model. Supports **stdio** servers (spawned) and **Streamable-HTTP** servers (Bearer token in `headers`). No config = zero overhead. See `mcp.example.json`.
+```json
+{ "mcpServers": {
+  "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest", "--headless"] }
+} }
+```
+Verified: with the config above, `tawx run "open example.com and report document.title"` loads 23 browser tools and drives a real browser → "Example Domain". MCP tools need approval like write/bash (auto-approved in headless `run`/`build`).
+
+> Note on remote/OAuth servers: a static Bearer token works but does not auto-refresh — re-paste when it expires. (The hosted shipkit MCP, for instance, is not reachable with a plain platform token; it needs its own OAuth flow.)
 
 ## Write a new skill
 Create `skills/<name>.md`:

@@ -3,6 +3,7 @@ import { chat } from "./provider.mjs";
 import { TOOLS, toolSchemas } from "./tools.mjs";
 import { loadSkills, skillsIndex, loadSkillTool } from "./skills.mjs";
 import { systemPrompt } from "./prompt.mjs";
+import { loadMcpTools } from "./mcp.mjs";
 import { DEFAULT_MODEL, MAX_STEPS } from "./config.mjs";
 
 function safeParse(s) {
@@ -38,7 +39,23 @@ export function createAgent(opts = {}) {
     { role: "system", content: systemPrompt({ cwd, model, skillsIndexStr: skillsIndex(skills) }) },
   ];
 
+  // Lazily connect to MCP servers (from ~/.taw/mcp.json or .taw/mcp.json) on first turn,
+  // merging their tools into the registry. No servers configured = no overhead. Non-fatal on error.
+  let mcpDone = false;
+  async function ensureMcp() {
+    if (mcpDone) return;
+    mcpDone = true;
+    const mtools = await loadMcpTools(cwd, onEvent).catch(() => []);
+    for (const t of mtools) {
+      if (!registry[t.schema.function.name]) {
+        registry[t.schema.function.name] = t;
+        tools.push(t.schema);
+      }
+    }
+  }
+
   async function send(userText, { signal } = {}) {
+    await ensureMcp();
     messages.push({ role: "user", content: userText });
 
     for (let step = 0; step < maxSteps; step++) {
