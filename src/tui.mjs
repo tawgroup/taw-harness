@@ -81,6 +81,12 @@ export async function runTui({ model = DEFAULT_MODEL } = {}) {
         case "mcp_error":
           process.stdout.write(c.dim(`  🔌 MCP ${ev.server}: ${ev.error}\n`));
           break;
+        case "compact_start":
+          process.stdout.write(c.dim(`  ♻ compacting context (~${ev.before} tok)…\n`));
+          break;
+        case "compact_done":
+          process.stdout.write(c.dim(`  ♻ compacted → ~${ev.after} tok\n`));
+          break;
       }
     },
     async approve(name, args, preview) {

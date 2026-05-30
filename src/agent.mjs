@@ -4,6 +4,7 @@ import { TOOLS, toolSchemas } from "./tools.mjs";
 import { loadSkills, skillsIndex, loadSkillTool } from "./skills.mjs";
 import { systemPrompt } from "./prompt.mjs";
 import { loadMcpTools } from "./mcp.mjs";
+import { maybeCompact } from "./compact.mjs";
 import { DEFAULT_MODEL, MAX_STEPS } from "./config.mjs";
 
 function safeParse(s) {
@@ -59,6 +60,8 @@ export function createAgent(opts = {}) {
     messages.push({ role: "user", content: userText });
 
     for (let step = 0; step < maxSteps; step++) {
+      // Compact older turns if the conversation has grown too large for the context window.
+      await maybeCompact(messages, { model, signal, onEvent });
       onEvent({ type: "thinking", model });
       const { message, finish_reason, usage, cost } = await chat({
         messages,

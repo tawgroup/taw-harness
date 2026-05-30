@@ -35,6 +35,7 @@ const headlessEvents = {
     else if (ev.type === "max_steps") process.stderr.write(c.yellow("⚠ reached step limit\n"));
     else if (ev.type === "mcp") process.stderr.write(c.dim(`🔌 MCP ${ev.server}: ${ev.count} tools\n`));
     else if (ev.type === "mcp_error") process.stderr.write(c.dim(`🔌 MCP ${ev.server}: ${ev.error}\n`));
+    else if (ev.type === "compact_done") process.stderr.write(c.dim(`♻ compacted context → ~${ev.after} tok\n`));
   },
 };
 

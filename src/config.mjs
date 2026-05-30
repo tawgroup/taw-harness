@@ -46,6 +46,10 @@ export const DEFAULT_MODEL = process.env.TAW_MODEL || "glm-5";
 
 export const MAX_STEPS = Number(process.env.TAW_MAX_STEPS || 40);
 export const MAX_TOKENS = Number(process.env.TAW_MAX_TOKENS || 8192);
+// Auto-compaction: when the running conversation exceeds this many estimated tokens,
+// older turns are summarized so a long task doesn't overflow the model context window.
+// 0 disables it. Cheap Go models have ~128k windows; default leaves generous headroom.
+export const COMPACT_THRESHOLD = Number(process.env.TAW_COMPACT_THRESHOLD || 60000);
 // hard timeout per model request — cheap Go models can stall on big generations
 export const REQUEST_TIMEOUT_MS = Number(process.env.TAW_REQUEST_TIMEOUT || 180000);
 // cap of bytes returned to the model from a single tool result
