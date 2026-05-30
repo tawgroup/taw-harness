@@ -38,17 +38,17 @@ const headlessEvents = {
 
 const model = getFlag("--model", DEFAULT_MODEL);
 
-const HELP = `taw harness — coding agent powered by OpenCode Go (cheap models)
+const HELP = `tawx — coding agent powered by OpenCode Go (cheap models)
 
 Usage:
-  taw                          open interactive TUI (chat)
-  taw run "<task>"             run one task then exit (headless, auto-approve)
-  taw -p "<task>"             alias of run
-  taw build "<task>" --verify "<cmd>"
+  tawx                         open interactive TUI (chat)
+  tawx run "<task>"            run one task then exit (headless, auto-approve)
+  tawx -p "<task>"            alias of run
+  tawx build "<task>" --verify "<cmd>"
                                self-driving loop: build → run verify command →
                                if it fails, auto-fix → repeat until it PASSES (hands-off)
-  taw models                   list OpenCode Go models
-  taw --help
+  tawx models                  list OpenCode Go models
+  tawx --help
 
 Options:
   --model <id>                 pick a model (default ${DEFAULT_MODEL})

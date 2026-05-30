@@ -20,7 +20,7 @@ export function banner(model) {
   const line = c.dim("─".repeat(48));
   return (
     "\n" +
-    c.bold(c.magenta("  ▟▙ taw harness")) +
+    c.bold(c.magenta("  ▟▙ tawx")) +
     c.dim("  · powered by OpenCode Go (cheap models)") +
     "\n" +
     line +

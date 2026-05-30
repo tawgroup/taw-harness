@@ -6,7 +6,7 @@ set -euo pipefail
 REPO="https://github.com/tawgroup/taw-harness.git"
 DIR="${TAW_HOME:-$HOME/.taw-harness}"
 
-echo "▟▙ taw harness installer"
+echo "▟▙ tawx installer"
 
 # 1. Node check (>= 20)
 if ! command -v node >/dev/null 2>&1; then
@@ -28,17 +28,17 @@ else
   git clone --depth 1 "$REPO" "$DIR"
 fi
 
-# 3. Make the `taw` command available
+# 3. Make the `tawx` command available
 chmod +x "$DIR/bin/taw.mjs"
-echo "→ Installing the 'taw' command"
+echo "→ Installing the 'tawx' command"
 if ( cd "$DIR" && npm install -g . >/dev/null 2>&1 ); then
   echo "  installed globally via npm"
 else
   # npm global prefix is often root-owned on Linux — fall back to a user-local symlink (no sudo).
   BIN="$HOME/.local/bin"
   mkdir -p "$BIN"
-  ln -sf "$DIR/bin/taw.mjs" "$BIN/taw"
-  echo "  npm -g not permitted → linked $BIN/taw"
+  ln -sf "$DIR/bin/taw.mjs" "$BIN/tawx"
+  echo "  npm -g not permitted → linked $BIN/tawx"
   case ":$PATH:" in
     *":$BIN:"*) ;;
     *)
@@ -62,5 +62,5 @@ if [ ! -f "$HOME/.taw/.env" ]; then
 fi
 
 echo ""
-echo "✓ Done. Try:  taw --help    (or just: taw)"
+echo "✓ Done. Try:  tawx --help    (or just: tawx)"
 echo "  Get a key: https://opencode.ai → workspace → API Keys"

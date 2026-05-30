@@ -5,7 +5,7 @@ export function systemPrompt({ cwd, model, skillsIndexStr }) {
   const skillsBlock = skillsIndexStr
     ? `\n# Skills (load on demand with the load_skill tool)\n${skillsIndexStr}\n`
     : "";
-  return `You are **taw harness** — a coding agent running on the "${model}" model from the OpenCode Go plan.
+  return `You are **tawx** — a coding agent running on the "${model}" model from the OpenCode Go plan.
 You help with programming: read/edit code, run commands, build, test, fix bugs — DO IT YOURSELF with tools, never tell the user to do it.
 
 # Environment

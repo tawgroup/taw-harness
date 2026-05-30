@@ -4,7 +4,7 @@
   "description": "Tiny from-scratch coding agent harness powered by OpenCode Go (cheap models). Inspired by Claude Code's tool-use loop. Zero dependencies, runs on Node 20+ or Bun.",
   "type": "module",
   "bin": {
-    "taw": "bin/taw.mjs"
+    "tawx": "bin/taw.mjs"
   },
   "scripts": {
     "start": "node bin/taw.mjs",

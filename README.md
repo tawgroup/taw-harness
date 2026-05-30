@@ -1,4 +1,4 @@
-# ▟▙ taw harness
+# ▟▙ tawx
 
 A tiny **from-scratch coding agent harness** — Claude Code style, but running on **OpenCode Go** (cheap coding models: GLM, DeepSeek, Qwen, Kimi, MiniMax…). Hand-written tool-use loop, **zero dependencies**, runs directly on **Node 20+** or **Bun**, no build step.
 
@@ -9,12 +9,12 @@ A tiny **from-scratch coding agent harness** — Claude Code style, but running 
 - 🛠️ **Tools**: `read_file`, `write_file`, `edit_file`, `list_dir`, `grep`, `bash`.
 - 🧩 **Skills**: Markdown files loaded on demand (like Claude Code skills). Put them in `skills/`, or `.taw/skills/` (project), or `~/.taw/skills/` (user).
 - 💬 Interactive **TUI** (color, spinner, action approval) + **headless** mode for CI/auto-build.
-- ♻️ **Self-verify build** (`taw build --verify`): build → run a verify command → auto-fix → repeat until it passes.
+- ♻️ **Self-verify build** (`tawx build --verify`): build → run a verify command → auto-fix → repeat until it passes.
 - 💸 Runs on the **$10/month OpenCode Go plan** (endpoint `zen/go/v1`, `cost: 0`).
 
 ## Install
 
-One line (clones to `~/.taw-harness`, installs the global `taw` command, seeds `~/.taw/.env`):
+One line (clones to `~/.taw-harness`, installs the global `tawx` command, seeds `~/.taw/.env`):
 ```bash
 curl -fsSL https://raw.githubusercontent.com/tawgroup/taw-harness/main/install.sh | bash
 ```
