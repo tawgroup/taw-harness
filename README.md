@@ -22,9 +22,9 @@ curl -fsSL https://raw.githubusercontent.com/tawgroup/taw-harness/main/install.s
 Or manually:
 ```bash
 git clone https://github.com/tawgroup/taw-harness && cd taw-harness
-npm install -g .              # global `taw` command (package exposes the bin)
+npm install -g .              # global `tawx` command (package exposes the bin)
 cp .env.example .env          # then fill in OPENCODE_API_KEY (Go plan key)
-taw                           # open the TUI
+tawx                          # open the TUI
 ```
 
 Then put your key in `~/.taw/.env` (`OPENCODE_API_KEY=sk-...`). Requires: Node ≥ 20 (or Bun). Get a Go plan key at https://opencode.ai → workspace → **API Keys**.
@@ -33,11 +33,11 @@ The interactive TUI **streams** replies token-by-token and renders Markdown; it 
 
 ## Use
 ```bash
-taw                                          # interactive TUI (chat)
-taw run "write a python fibonacci script and run it"   # headless
-taw run "fix the build error in this repo" --model qwen3.6-plus
-taw build "make a todo API in Node http with tests" --verify "node --test test.mjs"
-taw models                                   # list Go plan models
+tawx                                         # interactive TUI (chat)
+tawx run "write a python fibonacci script and run it"   # headless
+tawx run "fix the build error in this repo" --model qwen3.6-plus
+tawx build "make a todo API in Node http with tests" --verify "node --test test.mjs"
+tawx models                                  # list Go plan models
 ```
 
 ### TUI commands
